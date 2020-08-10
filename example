@@ -1,0 +1,18 @@
+jal fact
+exit syscall
+fact:
+sub $sp $sp $t2
+sw $ra 1($sp)
+sw $a0 0($sp)
+bne $a0 $zero L1
+add $v0 $zero $zero
+add $sp $sp $t2
+jr $ra
+L1:
+sub $a0 $a0 $t1
+jal fact
+lw $a0 0($sp)
+lw $ra 1($sp)
+add $sp $sp $t2
+add $v0 $a0 $v0
+jr $ra
