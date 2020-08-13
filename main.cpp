@@ -7,16 +7,16 @@ template<class A>ostream& operator<<(ostream& out,const vector<A>&v){out<<"[";fo
 #define watch(x) cout << #x << " : " << x << endl;
 
 // HIT MISS
-int X = 50;
-int N = 3;
+int X = 100;
+int N = 5;
 
 long long int binaryToInt(string s, int sign, int n = 32){
-        long long int base = (long long int)pow(2,n);
+    long long int base = (long long int)pow(2,n);
 //    watch(s);
-        if(sign==1 && s[0]=='1')
-            return stoll(s, nullptr, 2) - base;
-        else
-            return stoll(s, nullptr, 2);
+    if(sign==1 && s[0]=='1')
+        return stoll(s, nullptr, 2) - base;
+    else
+        return stoll(s, nullptr, 2);
 }
 
 string intToBinary(long long int n)
@@ -421,7 +421,7 @@ int forwarding_unit() {
     if ((MEM_WB[0][1][0] == '1') // and (MEM/WB.RegisterRd ≠ 0)
 
         and (not ( (EX_MEM[0][1][0] == '1') // and (EX_MEM[][1].RegisterRd ≠ 0) extra
-             and (EX_MEM[6][1] == ID_EX[9][1]) ))
+                   and (EX_MEM[6][1] == ID_EX[9][1]) ))
 
         and (MEM_WB[3][1] == ID_EX[9][1])) {
         return 3;
@@ -442,15 +442,15 @@ int forwarding_unit() {
 
 void hazard_control() {
     if(
-            // Memread
+        // Memread
             ID_EX[1][1][1] == '1' and
-                        // rt                 rs
+            // rt                 rs
             (
                     (ID_EX[8][1] == IF_ID[1][1].substr(6,5)) or
-                            // rt             rt
+                    // rt             rt
                     (ID_EX[8][1] == IF_ID[1][1].substr(11,5))
-             )
-             ) {
+            )
+            ) {
         cout << "------------------------------stall--------------" << endl;
         ID_EX[0][0] = "00";
         ID_EX[1][0] = "0000";
@@ -480,7 +480,7 @@ bool EX()
     EX_MEM[7][0] = ID_EX[10][1];  // jaddr
     EX_MEM[8][0] = ID_EX[11][1];   //PC
     EX_MEM[5][0] = ID_EX[5][1];
-                                                // pc+1                              // offset
+    // pc+1                              // offset
     string NewPC = intToBinary(binaryToInt(ID_EX[3][1],0) + binaryToInt(ID_EX[6][1],1,32)); // NewPc
 
     watch(ID_EX[6][1].substr(26,6));
@@ -587,7 +587,7 @@ bool MEM()
 
     string ReadData = zerosx32;
     int ok=0;
-        // MemSig                // ALUzero
+    // MemSig                // ALUzero
     if(EX_MEM[1][1][0] == '1' && EX_MEM[3][1] == "1") // branching
     {
         PCreg[0] = EX_MEM[2][1]; ok++; // next instr must be done
@@ -606,7 +606,7 @@ bool MEM()
         for(int i=0;i<9;i++) EX_MEM[i][0] = zerosx32;
     }
 
-        // MemSig
+    // MemSig
     if(EX_MEM[1][1][1] == '1')
     {
         cout << "&&&&&&&&&&&&& \"&&&&&&&&&&&&&\" \"&&&&&&&&&&&&&\" \"&&&&&&&&&&&&&\" \"&&&&&&&&&&&&&\" \"&&&&&&&&&&&&&\" " << endl;
