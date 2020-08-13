@@ -33,8 +33,8 @@ string binary_reg(const string& reg){
     else if(reg == "$a2")   answer = "00110";
     else if(reg == "$a3")   answer = "00111";
     else if(reg == "$t0")   answer = "01000";
-    else if(reg == "$t1")   answer = "01001";
-    else if(reg == "$t2")   answer = "01010";
+    else if(reg == "$t1")   answer = "01001"; // 9
+    else if(reg == "$t2")   answer = "01010"; // 10
     else if(reg == "$t3")   answer = "01011";
     else if(reg == "$t4")   answer = "01100";
     else if(reg == "$t5")   answer = "01101";
@@ -101,7 +101,7 @@ int find_string(string line){
     return -1;  //if not found..
 }
 
-void mipsCode2MachineCode(vector <string> &instruc, string &binary_instruc){
+void mipsCode2MachineCode(vector <string> &instruc, string &binary_instruc,int pc){
     int size = instruc.size();
     //int num_labels = numberOfLabels();
     if(size == 0){
@@ -158,7 +158,7 @@ void mipsCode2MachineCode(vector <string> &instruc, string &binary_instruc){
         string label;
         label += instruc[3] + ":";
         int pos = find_string(label);
-        label = to_string(pos+1);
+        label = to_string(pos+1 - (pc+1) );
         binary_instruc += intToBinary(label, 16) + "\n";
     }
     else if(instruc[0] == "bgtz"){
@@ -226,7 +226,7 @@ void convert_to_machine_code()
     int size = mips_code.size();    //size is the number of instructions along with lables
     string binary_instruc;
     for(int i=0; i<size; i++){
-        mipsCode2MachineCode(mips_code[i], binary_instruc);
+        mipsCode2MachineCode(mips_code[i], binary_instruc,i);
         if(!binary_instruc.empty())  count++;
         cout << binary_instruc;
         binary_instruc = "";
@@ -237,5 +237,3 @@ int main(){
     convert_to_machine_code();
     return 0;
 }
-
-
