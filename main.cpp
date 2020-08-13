@@ -8,7 +8,7 @@ template<class A>ostream& operator<<(ostream& out,const vector<A>&v){out<<"[";fo
 
 // HIT MISS
 int X = 50;
-int N = 10;
+int N = 3;
 
 long long int binaryToInt(string s, int sign, int n = 32){
         long long int base = (long long int)pow(2,n);
@@ -54,7 +54,7 @@ const string zerosx32 = "00000000000000000000000000000000";
 
 vector<string> instructionMemory;
 vector<string> registers(32, zerosx32);
-vector<string> dataMemory(10, zerosx32);
+vector<string> dataMemory(20, zerosx32);
 int clockCount = 0;
 
 // pipeline registers
@@ -79,7 +79,7 @@ void print_registers() {
 
 void print_memory() {
     cout << "Memory is:" << endl;
-    for(int i=0;i<10;i++) {
+    for(int i=0;i<20;i++) {
         cout << i << ": " << binaryToInt(dataMemory[i],1, 32) << ", ";
     }
     cout << "-------------" << endl << endl;
@@ -135,7 +135,8 @@ void CONTROL(string instruction)
         string ALUop1 = "1";
         string ALUop2 = "0";
         string ALUsrc = "0";
-        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc;
+        string JumpJAL = "0";
+        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc + JumpJAL;
 
         ID_EX[0][0] = WBSig;
         ID_EX[1][0] = MEMSig;
@@ -157,7 +158,8 @@ void CONTROL(string instruction)
         string ALUop1 = "0";
         string ALUop2 = "0";
         string ALUsrc = "1";
-        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc;
+        string JumpJAL = "0";
+        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc + JumpJAL;
 
         ID_EX[0][0] = WBSig;
         ID_EX[1][0] = MEMSig;
@@ -179,7 +181,8 @@ void CONTROL(string instruction)
         string ALUop1 = "0";
         string ALUop2 = "0";
         string ALUsrc = "1";
-        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc;
+        string JumpJAL = "0";
+        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc + JumpJAL;
 
         ID_EX[0][0] = WBSig;
         ID_EX[1][0] = MEMSig;
@@ -201,7 +204,8 @@ void CONTROL(string instruction)
         string ALUop1 = "0";
         string ALUop2 = "1";
         string ALUsrc = "0";
-        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc;
+        string JumpJAL = "0";
+        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc + JumpJAL;
 
         ID_EX[0][0] = WBSig;
         ID_EX[1][0] = MEMSig;
@@ -223,8 +227,29 @@ void CONTROL(string instruction)
         string ALUop1 = "0";
         string ALUop2 = "0";
         string ALUsrc = "0";
-        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc;
+        string JumpJAL = "0";
+        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc + JumpJAL;
 
+        ID_EX[0][0] = WBSig;
+        ID_EX[1][0] = MEMSig;
+        ID_EX[2][0] = EXSig;
+    }
+    else if( instruction == "000011" )  // jal
+    {
+        string RegWrite = "1";
+        string MemtoReg = "0";
+        string WBSig = RegWrite + MemtoReg;
+        string Branch = "0";
+        string MemRead = "0";
+        string MemWrite = "0";
+        string Jump = "1";
+        string MEMSig = Branch + MemRead + MemWrite + Jump;
+        string RegDest = "0";
+        string ALUop1 = "0";
+        string ALUop2 = "0";
+        string ALUsrc = "0";
+        string JumpJAL = "1";
+        string EXSig = RegDest + ALUop1 + ALUop2 + ALUsrc + JumpJAL;
         ID_EX[0][0] = WBSig;
         ID_EX[1][0] = MEMSig;
         ID_EX[2][0] = EXSig;
@@ -263,14 +288,16 @@ string ALUControl(string FuncCode, string ALUOp)
         {
             return "0111";
         }
+        else return "0000";
     }
+    else return "0000";
 }
 
 string ALU(string op1, string op2, string ALUsig)
 {
     long long int op1i = binaryToInt(op1,1,32);
     long long int op2i = binaryToInt(op2,1,32);
-    long long int res;
+    long long int res = 0;
     if(ALUsig == "0010")
     {
         res = op1i + op2i;
@@ -342,7 +369,7 @@ bool ID()
     {
         ID_EX[0][0] = "00";
         ID_EX[1][0] = "0000";
-        ID_EX[2][0] = "0000";
+        ID_EX[2][0] = "00000";
         ID_EX[4][0] = zerosx32;
         ID_EX[5][0] = zerosx32;
         ID_EX[6][0] = zerosx32;
@@ -427,7 +454,7 @@ void hazard_control() {
         cout << "------------------------------stall--------------" << endl;
         ID_EX[0][0] = "00";
         ID_EX[1][0] = "0000";
-        ID_EX[2][0] = "0000";
+        ID_EX[2][0] = "00000";
         ID_EX[4][0] = zerosx32;
         ID_EX[5][0] = zerosx32;
         ID_EX[6][0] = zerosx32;
@@ -452,10 +479,15 @@ bool EX()
     EX_MEM[1][0] = ID_EX[1][1];   //MEMSig
     EX_MEM[7][0] = ID_EX[10][1];  // jaddr
     EX_MEM[8][0] = ID_EX[11][1];   //PC
+    EX_MEM[5][0] = ID_EX[5][1];
                                                 // pc+1                              // offset
     string NewPC = intToBinary(binaryToInt(ID_EX[3][1],0) + binaryToInt(ID_EX[6][1],1,32)); // NewPc
 
+    watch(ID_EX[6][1].substr(26,6));
+    watch(ID_EX[2][1].substr(1,2));
+
     string ALUsig = ALUControl(ID_EX[6][1].substr(26,6), ID_EX[2][1].substr(1,2));
+    watch(ALUsig);
     string op1 = ID_EX[4][1];
     string op2 = (ID_EX[2][1][3] == '1') ? ID_EX[6][1] : ID_EX[5][1]; // operand2
 
@@ -469,7 +501,8 @@ bool EX()
         op1 = EX_MEM[4][1];
     }
     else if(x == 2) {
-        op2 = EX_MEM[4][1];
+        if(ID_EX[2][1][3] != '1') op2 = EX_MEM[4][1];
+        else EX_MEM[5][0] = EX_MEM[4][1]; // for sw
     }
     else if(x == 3) {
         if(MEM_WB[0][1][1]=='1')
@@ -492,23 +525,39 @@ bool EX()
         }
     }
 
+    // ALUop                                         // FuncCode
+    if(ID_EX[2][1].substr(1,2) == "10" and ID_EX[6][1].substr(26,6) == "001000")    // for jr
+    {
+        EX_MEM[7][0] = op1;     // Set Jump address to the value of rs
+        EX_MEM[1][0][3] = '1';  // Set Jump to 1
+        EX_MEM[0][0][0] = '0';  // Set RegWrite to 0
+    }
+
+    cout << "21409120498210948012402140812409" << endl;
+
+    cout << op1 << " " << op2 << " " << ALUsig << endl;
     string ALUresult = ALU(op1, op2, ALUsig);
+    cout << ALUresult << endl;
     string ALUzero = (ALUresult == zerosx32) ? "1" : "0";
     string DestReg = (ID_EX[2][1][0] == '0') ? ID_EX[8][1] : ID_EX[7][1]; //TODO : change here ~~~~~~
-
+    cout << "21409120498210948012402140812409" << endl;
+    // JumpJAL
+    if(ID_EX[2][1][4] == '1')   // for jal
+    {
+        ALUresult = ID_EX[3][1];  // set the ra value to PC+1
+        DestReg = "11111";  // set dest address to ra
+    }
 
     EX_MEM[2][0] = NewPC;
     EX_MEM[3][0] = ALUzero;
     EX_MEM[4][0] = ALUresult;
-    EX_MEM[5][0] = ID_EX[5][1];
     EX_MEM[6][0] = DestReg;
 
 
     // When there is no opcode, ALUop is "10" meaning there should be some sub or add
     // but since there is no func code, metans that there is no insr.
     // func code                                           // ALUop = Aluop1 + ALUop2
-    if(ID_EX[6][1].substr(26,6) == "000000" and ID_EX[0][1] == "00" and ID_EX[1][1] == "0000" and ID_EX[2][1] == "0000") {
-        cout << "23850239999999999999999958023985029385028350982039580928350928350982309582039580239850298350928305982309582035" << endl;
+    if(ID_EX[6][1].substr(26,6) == "000000" and ID_EX[0][1] == "00" and ID_EX[1][1] == "0000" and ID_EX[2][1] == "00000") {
         EX_MEM[0][0][0] = '0'; // make regwrite zero, since there is no operation being done/
         return false;
     }
@@ -521,7 +570,10 @@ void reset() {
     for(int i=0;i<12;i++) ID_EX[i][0] = ID_EX[i][1];
     for(int i=0;i<9;i++) EX_MEM[i][0] = EX_MEM[i][1];
     for(int i=0;i<5;i++) MEM_WB[i][0] = MEM_WB[i][1];
+    PCreg[0] = PCreg[1];
 }
+
+int lastrand = 50;
 
 // WBSig; MEMSig; NewPC; ALUzero; ALUresult; WriteData; DestReg; PC
 // WBSig; ReadData; ALUresult; DestReg; PC
@@ -575,11 +627,16 @@ bool MEM()
 
             // rand here
             int p = rand() % 100;
+//            p += lastrand;
+//            p %= 100;
+
+            lastrand = p;
 
             // HIT
             if (p <= X) {
                 ReadData = dataMemory[binaryToInt(EX_MEM[4][1], 0)]; ok++;
             } else {
+                cout << "DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY  DEALY " << endl;
                 cntr = N-1;
                 reset();
                 return true;
@@ -685,8 +742,10 @@ void init() {
     PCreg[0] = zerosx32;
     PCreg[1] = zerosx32;
     for(int i=0;i<32;i++) registers[i] = intToBinary(i);
-    dataMemory[3] = intToBinary(3);
-//    registers[1] = intToBinary(1);
+    registers[9] = intToBinary(1); // t1
+    registers[10] = intToBinary(2); // t2
+    registers[29] = intToBinary(16); // sp
+    registers[4] = intToBinary(5); // a0
 }
 
 int main()
@@ -714,13 +773,12 @@ int main()
 //        if(!res) break;
 //    }
     cout << "Everything done !!" << endl;
+    cout << clockCount-1 << endl;
     return 0;
 }
 
 /*
  *
- *  ass 8 correct wrt 10
- *  ass 9 correct wrt 10
  *  demonstrate x and N
  *  compare 8 and 9 clock cycles
  *  create 3 test cases
